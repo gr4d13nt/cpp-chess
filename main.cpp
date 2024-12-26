@@ -1,8 +1,14 @@
+#include <random>
 #include "chess.hpp"
 #include "engine.hpp"
 
 using namespace chess;
 using namespace std;
+
+
+std::random_device rd;
+std::mt19937 gen(rd());
+std::uniform_int_distribution<> dist(0, 99);
 
 // -1 for black win, 0 for draw, 1 for white win
 int play_game(Engine &white, Engine &black)
@@ -15,11 +21,30 @@ int play_game(Engine &white, Engine &black)
         // cout << board << endl;
         if (board.sideToMove() == Color::WHITE)
         {
-            move = white.best_move(board);
+            // low chance for random move
+            if (dist(gen) < 5)
+            {
+                Movelist moves;
+                movegen::legalmoves(moves, board);
+                move = moves[rand() % moves.size()];
+            }
+            else
+            {
+                move = white.best_move(board);
+            }
         }
         else
         {
-            move = black.best_move(board);
+            if (dist(gen) < 5)
+            {
+                Movelist moves;
+                movegen::legalmoves(moves, board);
+                move = moves[rand() % moves.size()];
+            }
+            else
+            {
+                move = black.best_move(board);
+            }
         }
 
         board.makeMove(move);

@@ -2,58 +2,55 @@
 #include "engine.hpp"
 
 using namespace chess;
+using namespace std;
 
 // -1 for black win, 0 for draw, 1 for white win
 int play_game(Engine &white, Engine &black)
 {
     Board board = Board();
     Move move;
-    int result = 0;
-
-    if (board.sideToMove() == Color::WHITE) {
-        move = white.best_move(board);
-    } else {
-        move = black.best_move(board);
-    }
-
-    board.makeMove(move);
 
     while (true)
     {
+        // cout << board << endl;
+        if (board.sideToMove() == Color::WHITE)
+        {
+            move = white.best_move(board);
+        }
+        else
+        {
+            move = black.best_move(board);
+        }
+
+        board.makeMove(move);
+
         if (board.isGameOver().second == GameResult::WIN)
         {
             if (board.sideToMove() == Color::WHITE)
             {
-                result = 1;
+                return 1;
             }
             else
             {
-                result = -1;
+                return -1;
             }
         }
         if (board.isGameOver().second == GameResult::DRAW)
         {
-            result = 0;
+            return 0;
         }
         if (board.isGameOver().second == GameResult::LOSE)
         {
             if (board.sideToMove() == Color::WHITE)
             {
-                result = -1;
+                return -1;
             }
             else
             {
-                result = 1;
+                return 1;
             }
         }
-        if (board.isGameOver().second == GameResult::NONE)
-        {
-            // print_board(board);
-            break;
-        }
     }
-
-    return result;
 }
 
 void play_n_games(Engine &p1, Engine &p2, int n)
@@ -98,15 +95,15 @@ void play_n_games(Engine &p1, Engine &p2, int n)
         }
     }
 
-    std::cout << "White wins: " << p1_wins << std::endl;
-    std::cout << "Black wins: " << p2_wins << std::endl;
-    std::cout << "Draws: " << draws << std::endl;
+    cout << "P1 wins: " << p1_wins << endl;
+    cout << "P2 wins: " << p2_wins << endl;
+    cout << "Draws: " << draws << endl;
 }
 
 int main()
 {
-    Engine1 p1 = Engine1(1000);
-    Engine2 p2 = Engine2(1000);
+    Engine1 p1 = Engine1(50);
+    Engine2 p2 = Engine2(50);
 
     play_n_games(p1, p2, 100);
 

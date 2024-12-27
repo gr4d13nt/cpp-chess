@@ -48,10 +48,11 @@ int play_game(Engine &white, Engine &black)
         }
 
         board.makeMove(move);
+        cout << board << endl;
 
         if (board.isGameOver().second == GameResult::WIN)
         {
-            cout << board << endl;
+            // cout << board << endl;
             if (board.sideToMove() == Color::WHITE)
             {
                 return 1;
@@ -63,12 +64,12 @@ int play_game(Engine &white, Engine &black)
         }
         if (board.isGameOver().second == GameResult::DRAW)
         {
-            cout << board << endl;
+            // cout << board << endl;
             return 0;
         }
         if (board.isGameOver().second == GameResult::LOSE)
         {
-            cout << board << endl;
+            // cout << board << endl;
             if (board.sideToMove() == Color::WHITE)
             {
                 return -1;
@@ -130,10 +131,10 @@ void play_n_games(Engine &p1, Engine &p2, int n)
 
 int main()
 {
-    Engine1 p1 = Engine1(25);
-    Engine2 p2 = Engine2(25);
+    Engine1 p1 = Engine1(1000);
+    Engine2 p2 = Engine2(1000);
 
-    play_n_games(p1, p2, 14);
+    play_n_games(p1, p2, 30);
 
     return 0;
 }

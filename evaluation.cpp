@@ -71,6 +71,7 @@ int piece_square_tables[14][64] = {
         -30, -10, 20, 30, 30, 20, -10, -30,
         -30, -30, 0, 0, 0, 0, -30, -30,
         -50, -30, -30, -30, -30, -30, -30, -50},
+    // Black pawn (mirrored from White pawn)
     {0, 0, 0, 0, 0, 0, 0, 0,
      5, 10, 10, -20, -20, 10, 10, 5,
      5, -5, -10, 0, 0, -10, -5, 5,
@@ -113,7 +114,7 @@ int piece_square_tables[14][64] = {
     {
         -20, -10, -10, -5, -5, -10, -10, -20,
         -10, 0, 5, 0, 0, 0, 0, -10,
-        -10, 5, 5, 5, 5, 5, -10,
+        -10, 5, 5, 5, 5, 5, 0, -10,
         -5, 0, 5, 5, 5, 5, 0, -5,
         0, 0, 5, 5, 5, 5, 0, -5,
         -10, 0, 5, 5, 5, 5, 0, -10,
@@ -193,64 +194,6 @@ int heuristic(Board &board)
         if (board.at(sq) == Piece::BLACKKING)
         {
             score -= 10000 + piece_square_tables[12][sq.index()];
-        }
-    }
-
-    return score;
-}
-
-int heuristic_old(Board &board)
-{
-    int score = 0;
-    for (Square sq = Square::underlying::SQ_A1; sq <= Square::underlying::SQ_H8; ++sq)
-    {
-        if (board.at(sq) == Piece::WHITEPAWN)
-        {
-            score += 100;
-        }
-        if (board.at(sq) == Piece::WHITEKNIGHT)
-        {
-            score += 300;
-        }
-        if (board.at(sq) == Piece::WHITEBISHOP)
-        {
-            score += 300;
-        }
-        if (board.at(sq) == Piece::WHITEROOK)
-        {
-            score += 500;
-        }
-        if (board.at(sq) == Piece::WHITEQUEEN)
-        {
-            score += 900;
-        }
-        if (board.at(sq) == Piece::WHITEKING)
-        {
-            score += 10000;
-        }
-        if (board.at(sq) == Piece::BLACKPAWN)
-        {
-            score -= 100;
-        }
-        if (board.at(sq) == Piece::BLACKKNIGHT)
-        {
-            score -= 300;
-        }
-        if (board.at(sq) == Piece::BLACKBISHOP)
-        {
-            score -= 300;
-        }
-        if (board.at(sq) == Piece::BLACKROOK)
-        {
-            score -= 500;
-        }
-        if (board.at(sq) == Piece::BLACKQUEEN)
-        {
-            score -= 900;
-        }
-        if (board.at(sq) == Piece::BLACKKING)
-        {
-            score -= 10000;
         }
     }
 

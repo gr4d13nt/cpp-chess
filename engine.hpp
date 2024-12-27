@@ -4,7 +4,7 @@ using namespace chess;
 
 class Engine
 {
-private:
+protected:
     int allotted_time; // in milliseconds
     clock_t start_time;
 

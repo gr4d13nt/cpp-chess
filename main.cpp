@@ -1,6 +1,7 @@
 #include <random>
 #include "chess.hpp"
 #include "engine.hpp"
+#include "evaluation.hpp"
 
 using namespace chess;
 using namespace std;
@@ -131,8 +132,8 @@ void play_n_games(Engine &p1, Engine &p2, int n)
 
 int main()
 {
-    Engine1 p1 = Engine1(1000);
-    Engine2 p2 = Engine2(1000);
+    Engine1 p1 = Engine1(500);
+    Engine2 p2 = Engine2(500);
 
     play_n_games(p1, p2, 30);
 

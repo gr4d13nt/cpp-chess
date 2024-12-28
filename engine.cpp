@@ -17,77 +17,11 @@ Move Engine::best_move(Board &board)
     return -1;
 }
 
-int minimax_alphabeta(Board &board, int depth, int alpha, int beta)
-{
-
-    minimax_nodes_searched++;
-    // Base case: depth is 0 or game is over
-    if (depth == 0 || board.isGameOver().first != GameResultReason::NONE)
-    {
-        auto result = board.isGameOver().second;
-
-        if (result == GameResult::WIN)
-        {
-            return board.sideToMove() == Color::WHITE ? 1000000 : -1000000;
-        }
-        else if (result == GameResult::DRAW)
-        {
-            return 0; // Draw
-        }
-        return heuristic(board);
-    }
-
-    Movelist moves;
-    movegen::legalmoves(moves, board);
-    Color side = board.sideToMove();
-
-    if (side == Color::WHITE)
-    {
-        int a = -10000000;
-        for (Move m : moves)
-        {
-            board.makeMove(m);
-            a = max(a, minimax_alphabeta(board, depth - 1, alpha, beta));
-            board.unmakeMove(m);
-            alpha = max(alpha, a);
-            if (alpha >= beta)
-            {
-                break;
-            }
-        }
-        if (a > 100000)
-        {
-            return a - 500;
-        }
-        return a;
-    }
-    else
-    {
-        int b = 10000000;
-        for (Move m : moves)
-        {
-            board.makeMove(m);
-            b = min(b, minimax_alphabeta(board, depth - 1, alpha, beta));
-            board.unmakeMove(m);
-            beta = min(beta, b);
-            if (alpha >= beta)
-            {
-                break;
-            }
-        }
-        if (b < -100000)
-        {
-            return b + 500;
-        }
-        return b;
-    }
-}
-
 int quiescence_search(Board &board, int alpha, int beta)
 {
     // Evaluate the position first (stand-pat).
     int stand_pat = heuristic(board);
-    Color side    = board.sideToMove();
+    Color side = board.sideToMove();
 
     // ----------------------------
     //  White (maximizing) branch
@@ -95,7 +29,7 @@ int quiescence_search(Board &board, int alpha, int beta)
     if (side == Color::WHITE)
     {
         // Fail-hard beta cutoff check
-        // If the stand-pat score is already >= beta, 
+        // If the stand-pat score is already >= beta,
         // the opponent (Black) won't allow us to reach this position.
         if (stand_pat >= beta)
             return beta;
@@ -163,6 +97,92 @@ int quiescence_search(Board &board, int alpha, int beta)
     }
 }
 
+int quiescence_search_badeval(Board &board, int alpha, int beta)
+{
+    // Evaluate the position first (stand-pat).
+    int stand_pat = heuristic_old(board);
+    int best_value = stand_pat;
+    Color side = board.sideToMove();
+
+    // ----------------------------
+    //  White (maximizing) branch
+    // ----------------------------
+    if (side == Color::WHITE)
+    {
+        // Fail-hard beta cutoff check
+        // If the stand-pat score is already >= beta,
+        // the opponent (Black) won't allow us to reach this position.
+        if (stand_pat >= beta)
+            return stand_pat;
+
+        // If stand-pat is better than alpha, raise alpha.
+        if (stand_pat > alpha)
+            alpha = stand_pat;
+
+        // Generate capture moves only
+        Movelist captures;
+        movegen::legalmoves<movegen::MoveGenType::CAPTURE>(captures, board);
+
+        // Search all captures
+        for (const auto &move : captures)
+        {
+            board.makeMove(move);
+            int score = quiescence_search_badeval(board, alpha, beta);
+            board.unmakeMove(move);
+
+            // If even one capture can force a position >= beta, prune
+            if (score >= beta)
+                return score;
+
+            if (score > best_value)
+                best_value = score;
+
+            // Update alpha if we found a better (larger) score
+            if (score > alpha)
+                alpha = score;
+        }
+        return best_value;
+    }
+
+    // ----------------------------
+    //  Black (minimizing) branch
+    // ----------------------------
+    else
+    {
+        // Fail-hard alpha cutoff check
+        // If the stand-pat <= alpha, White won't allow us to reach this position.
+        if (stand_pat <= alpha)
+            return stand_pat;
+
+        // If stand-pat is still better (lower) than beta, lower beta.
+        if (stand_pat < beta)
+            beta = stand_pat;
+
+        // Generate capture moves
+        Movelist captures;
+        movegen::legalmoves<movegen::MoveGenType::CAPTURE>(captures, board);
+
+        // Search captures
+        for (const auto &move : captures)
+        {
+            board.makeMove(move);
+            int score = quiescence_search_badeval(board, alpha, beta);
+            board.unmakeMove(move);
+
+            // If we can force <= alpha, prune
+            if (score <= alpha)
+                return alpha;
+
+            if (score < best_value)
+                best_value = score;
+
+            // Otherwise update beta to a smaller value
+            if (score < beta)
+                beta = score;
+        }
+        return best_value;
+    }
+}
 
 int principal_variation_search(Board &board, int depth, int alpha, int beta)
 {
@@ -255,7 +275,7 @@ int principal_variation_search(Board &board, int depth, int alpha, int beta)
     }
 }
 
-int principal_variation_search_bad(Board &board, int depth, int alpha, int beta)
+int principal_variation_search_badeval(Board &board, int depth, int alpha, int beta)
 {
     pvs_nodes_searched++;
     // Base case: depth is 0 or game is over
@@ -274,7 +294,7 @@ int principal_variation_search_bad(Board &board, int depth, int alpha, int beta)
     }
     if (depth == 0)
     {
-        return heuristic(board);
+        return quiescence_search_badeval(board, alpha, beta);
     }
 
     Movelist moves;
@@ -292,15 +312,15 @@ int principal_variation_search_bad(Board &board, int depth, int alpha, int beta)
             board.makeMove(m);
             if (firstMove)
             {
-                score = principal_variation_search_bad(board, depth - 1, alpha, beta);
+                score = principal_variation_search_badeval(board, depth - 1, alpha, beta);
                 firstMove = false;
             }
             else
             {
-                score = principal_variation_search_bad(board, depth - 1, alpha, alpha + 1);
+                score = principal_variation_search_badeval(board, depth - 1, alpha, alpha + 1);
                 if (score > alpha)
                 {
-                    score = principal_variation_search_bad(board, depth - 1, alpha, beta);
+                    score = principal_variation_search_badeval(board, depth - 1, alpha, beta);
                 }
             }
             board.unmakeMove(m);
@@ -322,15 +342,15 @@ int principal_variation_search_bad(Board &board, int depth, int alpha, int beta)
             board.makeMove(m);
             if (firstMove)
             {
-                score = principal_variation_search_bad(board, depth - 1, alpha, beta);
+                score = principal_variation_search_badeval(board, depth - 1, alpha, beta);
                 firstMove = false;
             }
             else
             {
-                score = principal_variation_search_bad(board, depth - 1, beta - 1, beta);
+                score = principal_variation_search_badeval(board, depth - 1, beta - 1, beta);
                 if (score < beta)
                 {
-                    score = principal_variation_search_bad(board, depth - 1, alpha, beta);
+                    score = principal_variation_search_badeval(board, depth - 1, alpha, beta);
                 }
             }
             board.unmakeMove(m);
@@ -419,7 +439,6 @@ Move Engine1::best_move(Board &board)
 
         // Increment depth for the next iteration
         depth++;
-        // cout << "pvs: " << depth << endl;
 
         // Check time limit before starting the next depth
         if (((clock() - start_time) * 1000 / CLOCKS_PER_SEC) >= allotted_time)
@@ -472,7 +491,7 @@ Move Engine2::best_move(Board &board)
             for (Move m : moves)
             {
                 board.makeMove(m);
-                int score = principal_variation_search_bad(board, depth, alpha, 10000000);
+                int score = principal_variation_search_badeval(board, depth, alpha, 10000000);
                 board.unmakeMove(m);
                 if (score > alpha)
                 {
@@ -487,7 +506,7 @@ Move Engine2::best_move(Board &board)
             for (Move m : moves)
             {
                 board.makeMove(m);
-                int score = principal_variation_search_bad(board, depth, -10000000, beta);
+                int score = principal_variation_search_badeval(board, depth, -10000000, beta);
                 board.unmakeMove(m);
                 if (score < beta)
                 {

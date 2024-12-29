@@ -1,3 +1,6 @@
+#ifndef ENGINE_HPP
+#define ENGINE_HPP
+
 #include "chess.hpp"
 
 using namespace chess;
@@ -27,3 +30,5 @@ public:
     Engine2(int time) : Engine(time) {}
     Move best_move(Board &board) override;
 };
+
+#endif

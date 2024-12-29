@@ -19,7 +19,6 @@ int play_game(Engine &white, Engine &black)
 
     while (true)
     {
-        // cout << board << endl;
         if (board.sideToMove() == Color::WHITE)
         {
             // low chance for random move
@@ -53,7 +52,6 @@ int play_game(Engine &white, Engine &black)
 
         if (board.isGameOver().second == GameResult::WIN)
         {
-            // cout << board << endl;
             if (board.sideToMove() == Color::WHITE)
             {
                 return 1;
@@ -65,12 +63,10 @@ int play_game(Engine &white, Engine &black)
         }
         if (board.isGameOver().second == GameResult::DRAW)
         {
-            // cout << board << endl;
             return 0;
         }
         if (board.isGameOver().second == GameResult::LOSE)
         {
-            // cout << board << endl;
             if (board.sideToMove() == Color::WHITE)
             {
                 return -1;

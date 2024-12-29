@@ -128,10 +128,10 @@ void play_n_games(Engine &p1, Engine &p2, int n)
 
 int main()
 {
-    Engine1 p1 = Engine1(500);
-    Engine2 p2 = Engine2(500);
+    Engine1 p1 = Engine1(10);
+    Engine2 p2 = Engine2(10);
 
-    play_n_games(p1, p2, 30);
+    play_n_games(p1, p2, 10);
 
     return 0;
 }
